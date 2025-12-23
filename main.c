@@ -2,6 +2,6 @@
 #include "header.h"
 
 int main() {
-  runWindow();
+  runApp();
   return 0;
 }

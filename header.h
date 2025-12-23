@@ -27,11 +27,12 @@ void genPipe(SDL_Texture *ptxtPipe, SDL_Renderer *prender, Uint32 intervalo,
              Uint32 *ultimoTempo, SDL_Rect *pipe);
 void addPipe(Pipe pipes[], Pipe hitBoxPipeTop[], Pipe hitBoxPipeBottom[],
              int *pipeCount);
-bool updateAndDrawPipe(Pipe pipes[], Pipe hitBoxPipeTop[],
+void updateAndDrawPipe(Pipe pipes[], Pipe hitBoxPipeTop[],
                        Pipe hitBoxPipeBottom[], int *pipeCount,
                        SDL_Renderer *prender, SDL_Texture *ptxtPipe,
-                       SDL_Rect *flappy);
-int itCollides(SDL_Rect player, Pipe hitBox[], int index);
-void runWindow();
+                       SDL_Rect *flappy, SDL_Rect *intersection);
+bool itCollides(SDL_Rect *player, SDL_Rect *intersection, Pipe hitBox[],
+                int index);
+void runApp();
 
 #endif

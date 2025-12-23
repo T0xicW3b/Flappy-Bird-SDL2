@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-void runWindow() {
+void runApp() {
   Uint32 interval = 1000;
   Uint32 lastTime = SDL_GetTicks();
   Pipe pipes[MAX_PIPES];
@@ -38,21 +38,26 @@ void runWindow() {
   SDL_Texture *ptxtSky = IMG_LoadTexture(prender, "sprites/sky.jpg");
   SDL_Rect sky = {0, 0, WIDTH, HEIGHT};
   SDL_Rect flappy = {100, 50, 60, 50};
-  SDL_Rect test = {500, 0, 110, 82};
-
-  bool gameRunning = true;
-  while (gameRunning) {
+  SDL_Rect intersection;
+  bool appRunning = true;
+  while (appRunning) {
 
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
       // keyevents
       switch (event.type) {
       case SDL_QUIT:
-        gameRunning = false;
+        appRunning = false;
         break;
       case SDL_KEYDOWN:
         if (event.key.keysym.sym == SDLK_SPACE) {
           flappy.y -= 90;
+        }
+        if (event.key.keysym.sym == SDLK_r) {
+          flappy.x = 100; // for debbug
+        }
+        if (event.key.keysym.sym == SDLK_e) {
+          flappy.y = 50;
         }
       }
     }
@@ -67,7 +72,7 @@ void runWindow() {
     // rule to gravity
     flappy.y += FLAPPY_VEL;
 
-    // clean the screen
+    // clean the screen to the game
     SDL_RenderClear(prender);
 
     // render sky
@@ -77,12 +82,12 @@ void runWindow() {
     SDL_RenderCopy(prender, ptxtFlappy, NULL, &flappy);
 
     // to make the pipe hitbox invisible
-    SDL_SetRenderDrawBlendMode(prender, SDL_BLENDMODE_BLEND);
+    // SDL_SetRenderDrawBlendMode(prender, SDL_BLENDMODE_BLEND);
     SDL_SetRenderDrawColor(prender, 0, 0, 0, 0);
 
     // this is temporary, i'll do it better in the next commit
-    gameRunning = updateAndDrawPipe(pipes, hitBoxPipeTop, hitBoxPipeBottom,
-                                    &pipeCount, prender, ptxtPipe, &flappy);
+    updateAndDrawPipe(pipes, hitBoxPipeTop, hitBoxPipeBottom, &pipeCount,
+                      prender, ptxtPipe, &flappy, &intersection);
     // render
     SDL_RenderPresent(prender);
 
@@ -111,7 +116,7 @@ void addPipe(Pipe pipes[], Pipe hitBoxPipeTop[], Pipe hitBoxPipeBottom[],
     // 82 is the minimum hitbox height pixels when pipePos is -300 (i tested)
 
     int hitBottomY = hitTopHeight + PIPE_GAP;
-    int hitBottomHeight = WIDTH - hitBottomY;
+    int hitBottomHeight = HEIGHT - hitBottomY;
     newPipe.rect.x = WIDTH;
     newPipe.rect.y = pipePos;
     newPipe.rect.w = PIPE_WIDTH;
@@ -138,10 +143,10 @@ void addPipe(Pipe pipes[], Pipe hitBoxPipeTop[], Pipe hitBoxPipeBottom[],
   }
 }
 
-bool updateAndDrawPipe(Pipe pipes[], Pipe hitBoxPipeTop[],
+void updateAndDrawPipe(Pipe pipes[], Pipe hitBoxPipeTop[],
                        Pipe hitBoxPipeBottom[], int *pipeCount,
                        SDL_Renderer *prender, SDL_Texture *ptxtPipe,
-                       SDL_Rect *flappy) {
+                       SDL_Rect *flappy, SDL_Rect *intersection) {
   for (int i = 0; i < *pipeCount; i++) {
     if (pipes[i].activate && hitBoxPipeTop[i].activate) {
       pipes[i].rect.x -= PIPE_VEL;
@@ -154,30 +159,30 @@ bool updateAndDrawPipe(Pipe pipes[], Pipe hitBoxPipeTop[],
         pipes[i].activate = false;
         hitBoxPipeTop[i].activate = false;
       }
-      if (itCollides(*flappy, hitBoxPipeTop, i) ||
-          itCollides(*flappy, hitBoxPipeBottom, i)) {
-        SDL_Quit();
-        return false;
-        // printf("Collides\n");
+      if (itCollides(flappy, intersection, hitBoxPipeTop, i) ||
+          itCollides(flappy, intersection, hitBoxPipeBottom, i)) {
+        if (intersection->w < intersection->h) {
+          if (flappy->x < hitBoxPipeTop[i].rect.x ||
+              flappy->x < hitBoxPipeBottom[i].rect.x) {
+            // if collides on the left just push to the left
+            // we don't need to check the right
+            flappy->x -= intersection->w;
+          }
+        } else {
+          if (flappy->y <= hitBoxPipeTop[i].rect.y + hitBoxPipeTop[i].rect.h) {
+            flappy->y += intersection->h;
+          }
+          if (flappy->y + flappy->h >= hitBoxPipeBottom[i].rect.h) {
+            flappy->y -= intersection->h;
+          }
+        }
       }
     }
   }
-  return true;
 }
 
-int itCollides(SDL_Rect flappy, Pipe hitBox[], int i) {
+bool itCollides(SDL_Rect *flappy, SDL_Rect *intersection, Pipe hitBox[],
+                int i) {
   // it see if it's on left of each other;
-  if (flappy.x + flappy.w <= hitBox[i].rect.x)
-    return false;
-  if (hitBox[i].rect.x + hitBox[i].rect.w <= flappy.x)
-    return false;
-
-  // see if it's above
-  if (flappy.y + flappy.h <= hitBox[i].rect.y)
-    return false;
-  if (hitBox[i].rect.y + hitBox[i].rect.h <= flappy.y)
-    return false;
-
-  // else, it collides
-  return true;
+  return SDL_IntersectRect(flappy, &hitBox[i].rect, intersection);
 }
