@@ -2,6 +2,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_joystick.h>
 #include <SDL2/SDL_rect.h>
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_stdinc.h>
@@ -72,6 +73,16 @@ void runApp() {
     // rule to gravity
     flappy.y += FLAPPY_VEL;
 
+    // this collide system needs to be out of the collision function
+    // because of the the looping we need to check add the hitbox and pipes
+    // i'll fix it later
+    if (flappy.y + flappy.h >= HEIGHT) {
+      flappy.y = HEIGHT - flappy.h;
+    }
+    if (flappy.y <= 0) {
+      flappy.y = 0;
+    }
+
     // clean the screen to the game
     SDL_RenderClear(prender);
 
@@ -82,7 +93,7 @@ void runApp() {
     SDL_RenderCopy(prender, ptxtFlappy, NULL, &flappy);
 
     // to make the pipe hitbox invisible
-    // SDL_SetRenderDrawBlendMode(prender, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawBlendMode(prender, SDL_BLENDMODE_BLEND);
     SDL_SetRenderDrawColor(prender, 0, 0, 0, 0);
 
     // this is temporary, i'll do it better in the next commit
