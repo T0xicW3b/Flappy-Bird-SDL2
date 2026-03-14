@@ -1,5 +1,4 @@
-#include "functions.c"
-#include "header.h"
+#include "header/header.h"
 #include <SDL2/SDL_render.h>
 
 int main() {
