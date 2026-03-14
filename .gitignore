@@ -1,6 +1,15 @@
+
 build/
 
 compile_commands.json
+.cache/
+.clangd/
 
+# bin e exe
 flappy
 flappy.exe
+*.out
+*.app
+
+#arquivos temporarios
+temp/
