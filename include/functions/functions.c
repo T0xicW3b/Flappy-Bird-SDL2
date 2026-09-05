@@ -20,7 +20,9 @@ void runApp() {
   Pipe pipes[MAX_PIPES];
   Pipe hitBoxPipeTop[MAX_PIPES];
   Pipe hitBoxPipeBottom[MAX_PIPES]; // I can't name better these var
-  int pipeCount = 0;
+  Pipe hitBoxPipePoints[MAX_PIPES]; // even these LOL
+  int pipeCount = 0, points = 0;
+  bool scored[MAX_PIPES] = {false};
   // seed for the pipe random position
   srand(time(NULL));
 
@@ -61,14 +63,17 @@ void runApp() {
         appRunning = false;
         break;
       case SDL_KEYDOWN:
-        if (event.key.keysym.sym == SDLK_SPACE) {
+        if (event.key.keysym.scancode == SDL_SCANCODE_SPACE) {
           flappy.y -= 90;
+          // printf("space pressed\n");
         }
-        if (event.key.keysym.sym == SDLK_r) {
+        if (event.key.keysym.scancode == SDL_SCANCODE_R) {
           flappy.x = 100; // for debbug
+          printf("x postion reseted\n");
         }
-        if (event.key.keysym.sym == SDLK_e) {
+        if (event.key.keysym.scancode == SDL_SCANCODE_E) {
           flappy.y = 50;
+          printf("y position reseted\n");
         }
       }
     }
@@ -80,7 +85,9 @@ void runApp() {
 
       // rule to add new pipes
       if (now - lastTime >= interval) {
-        addPipe(pipes, hitBoxPipeTop, hitBoxPipeBottom, &pipeCount);
+        addPipe(pipes, hitBoxPipeTop, hitBoxPipeBottom, hitBoxPipePoints,
+                &pipeCount);
+
         lastTime = now;
       }
 
@@ -109,8 +116,9 @@ void runApp() {
 
       // this is temporary, i'll do it better in the next commit
       isFlappyAlive = updateAndDrawPipe(pipes, hitBoxPipeTop, hitBoxPipeBottom,
-                                        &pipeCount, prender, ptxtPipe, &flappy,
-                                        &intersection, isFlappyAlive);
+                                        hitBoxPipePoints, &pipeCount, &points,
+                                        prender, ptxtPipe, &flappy,
+                                        &intersection, isFlappyAlive, scored);
     } else {
       SDL_RenderCopy(prender, ptxtSky, NULL, &sky);
       SDL_SetRenderDrawColor(prender, 237, 207, 71, 255);
@@ -136,15 +144,18 @@ int genPipePosition() {
 }
 
 void addPipe(Pipe pipes[], Pipe hitBoxPipeTop[], Pipe hitBoxPipeBottom[],
-             int *pipeCount) {
+             Pipe hitBoxPipePoints[], int *pipeCount) {
   if (*pipeCount < MAX_PIPES) {
     Pipe newPipe;
     int pipePos = genPipePosition();
     int hitTopHeight = 82 + (pipePos - (-300)); // the rule to hitbox size
-    // 82 is the minimum hitbox height pixels when pipePos is -300 (i tested)
+    // 82 is the minimum hitbox height pixels when pipePos is -300 (i tested.)
 
     int hitBottomY = hitTopHeight + PIPE_GAP;
     int hitBottomHeight = HEIGHT - hitBottomY;
+
+    int hitPointsY = hitTopHeight;
+
     newPipe.rect.x = WIDTH;
     newPipe.rect.y = pipePos;
     newPipe.rect.w = PIPE_WIDTH;
@@ -167,6 +178,15 @@ void addPipe(Pipe pipes[], Pipe hitBoxPipeTop[], Pipe hitBoxPipeBottom[],
     hitBottom.rect.h = hitBottomHeight;
     hitBottom.activate = true;
     hitBoxPipeBottom[*pipeCount] = hitBottom;
+
+    Pipe hitPoints;
+    hitPoints.rect.x = WIDTH;
+    hitPoints.rect.y = hitPointsY;
+    hitPoints.rect.w = PIPE_WIDTH;
+    hitPoints.rect.h = PIPE_GAP;
+    hitPoints.activate = true;
+    hitBoxPipePoints[*pipeCount] = hitPoints;
+
     (*pipeCount)++;
   }
 }
@@ -174,21 +194,32 @@ void addPipe(Pipe pipes[], Pipe hitBoxPipeTop[], Pipe hitBoxPipeBottom[],
 // i'll move this collision function outside of
 // this function in the future
 bool updateAndDrawPipe(Pipe pipes[], Pipe hitBoxPipeTop[],
-                       Pipe hitBoxPipeBottom[], int *pipeCount,
-                       SDL_Renderer *prender, SDL_Texture *ptxtPipe,
-                       SDL_Rect *flappy, SDL_Rect *intersection,
-                       bool isFlappyAlive) {
+                       Pipe hitBoxPipeBottom[], Pipe hitBoxPipePoints[],
+                       int *pipeCount, int *points, SDL_Renderer *prender,
+                       SDL_Texture *ptxtPipe, SDL_Rect *flappy,
+                       SDL_Rect *intersection, bool isFlappyAlive,
+                       bool scored[]) {
   for (int i = 0; i < *pipeCount; i++) {
     if (pipes[i].activate && hitBoxPipeTop[i].activate) {
       pipes[i].rect.x -= PIPE_VEL;
       hitBoxPipeTop[i].rect.x -= PIPE_VEL;
       hitBoxPipeBottom[i].rect.x -= PIPE_VEL;
+      hitBoxPipePoints[i].rect.x -= PIPE_VEL;
       SDL_RenderCopy(prender, ptxtPipe, NULL, &pipes[i].rect);
       SDL_RenderDrawRect(prender, &hitBoxPipeTop[i].rect);
       SDL_RenderDrawRect(prender, &hitBoxPipeBottom[i].rect);
+      SDL_RenderDrawRect(prender, &hitBoxPipePoints[i].rect);
       if (pipes[i].rect.x + pipes[i].rect.w < 0) {
         pipes[i].activate = false;
         hitBoxPipeTop[i].activate = false;
+      }
+
+      if (itCollides(flappy, intersection, hitBoxPipePoints, i)) {
+        if (!scored[i] && intersection->w < intersection->h) {
+          (*points)++;
+          scored[i] = true;
+          printf("Score: %d\n", *points);
+        }
       }
       if (itCollides(flappy, intersection, hitBoxPipeTop, i) ||
           itCollides(flappy, intersection, hitBoxPipeBottom, i)) {
