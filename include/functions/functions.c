@@ -1,3 +1,4 @@
+#include "SDL_gamecontroller.h"
 #include "header/header.h" //aqui esta a constante vel
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_events.h>
@@ -10,6 +11,7 @@
 #include <SDL2/SDL_timer.h>
 #include <SDL2/SDL_video.h>
 #include <stdbool.h> //I know that this is native in C++
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -26,12 +28,15 @@ void runApp() {
   // seed for the pipe random position
   srand(time(NULL));
 
-  SDL_Init(SDL_INIT_VIDEO);
+  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER)) {
+    fprintf(stderr, "Error initializing SDL2: %s\n", SDL_GetError());
+  }
   SDL_Window *pwindow =
       SDL_CreateWindow("Flappy Bird", SDL_WINDOWPOS_CENTERED,
                        SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT, SDL_WINDOW_SHOWN);
   SDL_Renderer *prender =
       SDL_CreateRenderer(pwindow, -1, SDL_RENDERER_ACCELERATED);
+  SDL_GameController *gamepad = NULL;
 
   if (!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)) {
     printf("Erro ao inicializar SDL2_image: %s\n", IMG_GetError());
@@ -64,7 +69,7 @@ void runApp() {
         break;
       case SDL_KEYDOWN:
         if (event.key.keysym.scancode == SDL_SCANCODE_SPACE) {
-          flappy.y -= 90;
+          flappy.y -= FLAPPY_JUMP;
           // printf("space pressed\n");
         }
         if (event.key.keysym.scancode == SDL_SCANCODE_R) {
@@ -74,6 +79,31 @@ void runApp() {
         if (event.key.keysym.scancode == SDL_SCANCODE_E) {
           flappy.y = 50;
           printf("y position reseted\n");
+        }
+        break;
+      case SDL_CONTROLLERDEVICEADDED:
+        if (!gamepad) {
+          gamepad = SDL_GameControllerOpen(event.cdevice.which);
+          if (gamepad) {
+            printf("Controller connected\n");
+          }
+        }
+        break;
+      case SDL_CONTROLLERDEVICEREMOVED:
+        if (gamepad) {
+          SDL_Joystick *joy = SDL_GameControllerGetJoystick(gamepad);
+          SDL_JoystickID id = SDL_JoystickInstanceID(joy);
+
+          if (event.cdevice.which == id) {
+            SDL_GameControllerClose(gamepad);
+            gamepad = NULL;
+            printf("Controller Disconnected\n");
+          }
+          break;
+        case SDL_CONTROLLERBUTTONDOWN:
+          if (event.cbutton.button == SDL_CONTROLLER_BUTTON_A) {
+            flappy.y -= FLAPPY_JUMP;
+          }
         }
       }
     }

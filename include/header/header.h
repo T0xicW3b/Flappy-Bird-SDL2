@@ -9,6 +9,7 @@
 #define WIDTH 900
 #define HEIGHT 600
 #define FLAPPY_VEL 4
+#define FLAPPY_JUMP 90
 #define PIPE_VEL 7
 #define MAX_PIPES 100
 #define PIPE_HEIGHT 1000
