@@ -2,8 +2,9 @@
 #include "functions/addPipe.c"
 #include "functions/genPipePosition.c"
 #include "functions/itCollides.c"
+#include "functions/renderScore.c"
 #include "functions/updateAndDrawPipe.c"
-#include "header/header.h" //aqui esta a constante vel
+#include "header/header.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_image.h>
@@ -13,11 +14,13 @@
 #include <SDL2/SDL_stdinc.h>
 #include <SDL2/SDL_surface.h>
 #include <SDL2/SDL_timer.h>
+#include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_video.h>
 #include <stdbool.h> //I know that this is native in C++
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 void runApp() {
@@ -35,16 +38,21 @@ void runApp() {
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER)) {
     fprintf(stderr, "Error initializing SDL2: %s\n", SDL_GetError());
   }
+  if (TTF_Init() == -1) {
+    fprintf(stderr, "Error initializing SDL2_ttf: %s\n", TTF_GetError());
+    SDL_Quit(); // Fecha o SDL se as fontes falharem
+  }
+  if (!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)) {
+    printf("Erro initializing SDL2_image: %s\n", IMG_GetError());
+  }
   SDL_Window *pwindow =
       SDL_CreateWindow("Flappy Bird", SDL_WINDOWPOS_CENTERED,
                        SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT, SDL_WINDOW_SHOWN);
   SDL_Renderer *prender =
       SDL_CreateRenderer(pwindow, -1, SDL_RENDERER_ACCELERATED);
   SDL_GameController *gamepad = NULL;
+  TTF_Font *font = TTF_OpenFont("../assets/fonts/kongtext/kongtext.ttf", 24);
 
-  if (!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)) {
-    printf("Erro ao inicializar SDL2_image: %s\n", IMG_GetError());
-  }
   SDL_Texture *ptxtPipe =
       IMG_LoadTexture(prender, "../assets/sprites/pipe.png");
   SDL_Texture *ptxtFlappy =
@@ -79,6 +87,11 @@ void runApp() {
         if (event.key.keysym.scancode == SDL_SCANCODE_R) {
           flappy.x = 100; // for debbug
           printf("x postion reseted\n");
+          if (!isFlappyAlive) {
+            flappy.x = 100;
+            flappy.y = 50;
+            isFlappyAlive = !isFlappyAlive;
+          }
         }
         if (event.key.keysym.scancode == SDL_SCANCODE_E) {
           flappy.y = 50;
@@ -108,13 +121,30 @@ void runApp() {
           if (event.cbutton.button == SDL_CONTROLLER_BUTTON_A) {
             flappy.y -= FLAPPY_JUMP;
           }
+          if (event.cbutton.button == SDL_CONTROLLER_BUTTON_Y) {
+            if (!isFlappyAlive) {
+              flappy.x = 100;
+              flappy.y = 50;
+              isFlappyAlive = !isFlappyAlive;
+            }
+          }
         }
       }
     }
     // clean the screen to the game
     SDL_RenderClear(prender);
 
-    if (isFlappyAlive) {
+    if (!isFlappyAlive) {
+      SDL_RenderCopy(prender, ptxtSky, NULL, &sky);
+      SDL_SetRenderDrawColor(prender, 237, 207, 71, 255);
+      SDL_RenderFillRect(prender, &box);
+      memset(pipes, 0, sizeof(pipes));
+      memset(hitBoxPipeBottom, 0, sizeof(hitBoxPipeBottom));
+      memset(hitBoxPipeTop, 0, sizeof(hitBoxPipeTop));
+      memset(hitBoxPipePoints, 0, sizeof(hitBoxPipePoints));
+      points = 0;
+
+    } else {
       Uint32 now = SDL_GetTicks();
 
       // rule to add new pipes
@@ -151,12 +181,9 @@ void runApp() {
       // this is temporary, i'll do it better in the next commit
       isFlappyAlive = updateAndDrawPipe(
           pipes, hitBoxPipeTop, hitBoxPipeBottom, hitBoxPipePoints, &pipeCount,
-          &points, prender, ptxtPipe, &flappy, &intersection, gamepad,
+          &points, prender, ptxtPipe, &flappy, &intersection, gamepad, font,
           isFlappyAlive, scored);
-    } else {
-      SDL_RenderCopy(prender, ptxtSky, NULL, &sky);
-      SDL_SetRenderDrawColor(prender, 237, 207, 71, 255);
-      SDL_RenderFillRect(prender, &box);
+      renderScore(prender, font, 50, 30, &points);
     }
 
     // render

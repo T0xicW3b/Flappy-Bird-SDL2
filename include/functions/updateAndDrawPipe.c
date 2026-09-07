@@ -1,7 +1,7 @@
 #include "SDL_gamecontroller.h"
 #include "SDL_stdinc.h"
 #include "header/header.h"
-#include <stdio.h>
+// #include <stdio.h>
 
 // i'll move this collision function outside of
 // this function in the future
@@ -10,7 +10,7 @@ bool updateAndDrawPipe(Pipe pipes[], Pipe hitBoxPipeTop[],
                        int *pipeCount, int *points, SDL_Renderer *prender,
                        SDL_Texture *ptxtPipe, SDL_Rect *flappy,
                        SDL_Rect *intersection, SDL_GameController *gamepad,
-                       bool isFlappyAlive, bool scored[]) {
+                       TTF_Font *font, bool isFlappyAlive, bool scored[]) {
   for (int i = 0; i < *pipeCount; i++) {
     if (pipes[i].activate && hitBoxPipeTop[i].activate) {
       pipes[i].rect.x -= PIPE_VEL;
@@ -36,7 +36,6 @@ bool updateAndDrawPipe(Pipe pipes[], Pipe hitBoxPipeTop[],
         Uint32 duration = 10;
         SDL_GameControllerRumble(gamepad, low_freq, high_freq, duration);
         hitBoxPipeBottom[i].rumbled = true;
-        printf("Vibra\n");
       } else {
         hitBoxPipeBottom[i].rumbled = false;
       }
@@ -45,7 +44,7 @@ bool updateAndDrawPipe(Pipe pipes[], Pipe hitBoxPipeTop[],
         if (!scored[i] && intersection->w < intersection->h) {
           (*points)++;
           scored[i] = true;
-          printf("Score: %d\n", *points);
+          // printf("Score: %d\n", *points);
         }
       }
       if (itCollides(flappy, intersection, hitBoxPipeTop, i) ||

@@ -3,6 +3,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_rect.h>
 #include <SDL2/SDL_stdinc.h>
+#include <SDL2/SDL_ttf.h>
 #include <stdbool.h>
 
 // const area
@@ -27,8 +28,10 @@ typedef struct {
 
 // functions header area
 int genPipePosition();
+
 void genPipe(SDL_Texture *ptxtPipe, SDL_Renderer *prender, Uint32 intervalo,
              Uint32 *ultimoTempo, SDL_Rect *pipe);
+
 void addPipe(Pipe pipes[], Pipe hitBoxPipeTop[], Pipe hitBoxPipeBottom[],
              Pipe hitBoxPipePoints[], int *pipeCount);
 
@@ -37,7 +40,11 @@ bool updateAndDrawPipe(Pipe pipes[], Pipe hitBoxPipeTop[],
                        int *pipeCount, int *points, SDL_Renderer *prender,
                        SDL_Texture *ptxtPipe, SDL_Rect *flappy,
                        SDL_Rect *intersection, SDL_GameController *gamepad,
-                       bool isFlappyAlive, bool scored[]);
+                       TTF_Font *font, bool isFlappyAlive, bool scored[]);
+
+void renderScore(SDL_Renderer *prender, TTF_Font *font, int x, int y,
+                 int *score);
+
 bool itCollides(SDL_Rect *player, SDL_Rect *intersection, Pipe hitBox[],
                 int index);
 void runApp();
