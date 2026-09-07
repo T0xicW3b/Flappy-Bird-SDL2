@@ -149,10 +149,10 @@ void runApp() {
       SDL_SetRenderDrawColor(prender, 0, 0, 0, 0);
 
       // this is temporary, i'll do it better in the next commit
-      isFlappyAlive = updateAndDrawPipe(pipes, hitBoxPipeTop, hitBoxPipeBottom,
-                                        hitBoxPipePoints, &pipeCount, &points,
-                                        prender, ptxtPipe, &flappy,
-                                        &intersection, isFlappyAlive, scored);
+      isFlappyAlive = updateAndDrawPipe(
+          pipes, hitBoxPipeTop, hitBoxPipeBottom, hitBoxPipePoints, &pipeCount,
+          &points, prender, ptxtPipe, &flappy, &intersection, gamepad,
+          isFlappyAlive, scored);
     } else {
       SDL_RenderCopy(prender, ptxtSky, NULL, &sky);
       SDL_SetRenderDrawColor(prender, 237, 207, 71, 255);

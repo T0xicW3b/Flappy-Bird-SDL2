@@ -21,6 +21,7 @@
 
 typedef struct {
   SDL_Rect rect;
+  bool rumbled;
   bool activate;
 } Pipe;
 
@@ -35,8 +36,8 @@ bool updateAndDrawPipe(Pipe pipes[], Pipe hitBoxPipeTop[],
                        Pipe hitBoxPipeBottom[], Pipe hitBoxPipePoints[],
                        int *pipeCount, int *points, SDL_Renderer *prender,
                        SDL_Texture *ptxtPipe, SDL_Rect *flappy,
-                       SDL_Rect *intersection, bool isFlappyAlive,
-                       bool scored[]);
+                       SDL_Rect *intersection, SDL_GameController *gamepad,
+                       bool isFlappyAlive, bool scored[]);
 bool itCollides(SDL_Rect *player, SDL_Rect *intersection, Pipe hitBox[],
                 int index);
 void runApp();

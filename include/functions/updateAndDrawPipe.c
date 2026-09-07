@@ -1,4 +1,7 @@
+#include "SDL_gamecontroller.h"
+#include "SDL_stdinc.h"
 #include "header/header.h"
+#include <stdio.h>
 
 // i'll move this collision function outside of
 // this function in the future
@@ -6,8 +9,8 @@ bool updateAndDrawPipe(Pipe pipes[], Pipe hitBoxPipeTop[],
                        Pipe hitBoxPipeBottom[], Pipe hitBoxPipePoints[],
                        int *pipeCount, int *points, SDL_Renderer *prender,
                        SDL_Texture *ptxtPipe, SDL_Rect *flappy,
-                       SDL_Rect *intersection, bool isFlappyAlive,
-                       bool scored[]) {
+                       SDL_Rect *intersection, SDL_GameController *gamepad,
+                       bool isFlappyAlive, bool scored[]) {
   for (int i = 0; i < *pipeCount; i++) {
     if (pipes[i].activate && hitBoxPipeTop[i].activate) {
       pipes[i].rect.x -= PIPE_VEL;
@@ -21,6 +24,21 @@ bool updateAndDrawPipe(Pipe pipes[], Pipe hitBoxPipeTop[],
       if (pipes[i].rect.x + pipes[i].rect.w < 0) {
         pipes[i].activate = false;
         hitBoxPipeTop[i].activate = false;
+        // hitBoxPipeBottom[i].rumbled = false;
+      }
+      if (!hitBoxPipeBottom[i].rumbled &&
+          hitBoxPipeBottom[i].rect.y - flappy->y < 100 &&
+          hitBoxPipeBottom[i].rect.x <= (flappy->x + flappy->w) &&
+          hitBoxPipeBottom[i].rect.x + hitBoxPipeBottom[i].rect.w >=
+              flappy->x) {
+        Uint16 low_freq = 0xFFFF;
+        Uint16 high_freq = 0xFFFF;
+        Uint32 duration = 10;
+        SDL_GameControllerRumble(gamepad, low_freq, high_freq, duration);
+        hitBoxPipeBottom[i].rumbled = true;
+        printf("Vibra\n");
+      } else {
+        hitBoxPipeBottom[i].rumbled = false;
       }
 
       if (itCollides(flappy, intersection, hitBoxPipePoints, i)) {
