@@ -13,7 +13,7 @@ include_directories(include ${SDL2_INCLUDE_DIRS} ${SDL2_IMAGE_INCLUDE_DIRS} ${SD
 
 # Adicionar executável
 # Compilar o arquivo main.c e o functions.c e dps o linker faz o trabalho de juntar tudo
-add_executable(flappy main.c include/functions/functions.c)
+add_executable(flappy main.c include/functions/runApp.c)
 
 # Linkar bibliotecas
 target_link_libraries(flappy ${SDL2_LIBRARIES} ${SDL2_IMAGE_LIBRARIES} ${SDL2_TTF_LIBRARIES})
