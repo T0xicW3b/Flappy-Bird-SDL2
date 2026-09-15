@@ -29,8 +29,8 @@ typedef struct {
 // functions header area
 int genPipePosition();
 
-void genPipe(SDL_Texture *ptxtPipe, SDL_Renderer *prender, Uint32 intervalo,
-             Uint32 *ultimoTempo, SDL_Rect *pipe);
+// void genPipe(SDL_Texture *ptxtPipe, SDL_Renderer *prender, Uint32 interval,
+//            Uint32 *lastTime, SDL_Rect *pipe);
 
 void addPipe(Pipe pipes[], Pipe hitBoxPipeTop[], Pipe hitBoxPipeBottom[],
              Pipe hitBoxPipePoints[], int *pipeCount);
@@ -42,8 +42,10 @@ bool updateAndDrawPipe(Pipe pipes[], Pipe hitBoxPipeTop[],
                        SDL_Rect *intersection, SDL_GameController *gamepad,
                        TTF_Font *font, bool isFlappyAlive, bool scored[]);
 
-void renderScore(SDL_Renderer *prender, TTF_Font *font, int x, int y,
-                 int *score);
+int GetTextWidth(TTF_Font *font, const char *text);
+
+void renderScore(SDL_Renderer *prender, TTF_Font *font, const char *text, int x,
+                 int y, int *score);
 
 bool itCollides(SDL_Rect *player, SDL_Rect *intersection, Pipe hitBox[],
                 int index);

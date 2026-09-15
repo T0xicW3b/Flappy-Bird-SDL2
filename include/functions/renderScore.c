@@ -6,13 +6,12 @@
 #include <SDL2/SDL_ttf.h>
 #include <stdio.h>
 
-void renderScore(SDL_Renderer *prender, TTF_Font *font, int x, int y,
-                 int *score) {
-  char buffer[32];
-  snprintf(buffer, sizeof(buffer), "Score: %d", (*score));
+void renderScore(SDL_Renderer *prender, TTF_Font *font, const char *text, int x,
+                 int y, int *score) {
 
-  SDL_Color yellow = {207, 63, 41, 255};
-  SDL_Surface *tempSurface = TTF_RenderText_Blended(font, buffer, yellow);
+  SDL_Color red = {207, 63, 41, 255};
+  SDL_Color white = {255, 255, 255, 255};
+  SDL_Surface *tempSurface = TTF_RenderText_Blended(font, text, red);
   if (!tempSurface) {
     printf("Error initializing TTF: %s\n", TTF_GetError());
     return;

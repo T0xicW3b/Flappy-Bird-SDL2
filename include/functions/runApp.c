@@ -1,9 +1,4 @@
 #include "SDL_gamecontroller.h"
-#include "functions/addPipe.c"
-#include "functions/genPipePosition.c"
-#include "functions/itCollides.c"
-#include "functions/renderScore.c"
-#include "functions/updateAndDrawPipe.c"
 #include "header/header.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_events.h>
@@ -33,6 +28,8 @@ void runApp() {
   int pipeCount = 0, points = 0;
   bool scored[MAX_PIPES] = {false};
   // seed for the pipe random position
+  int fontSize = 30;
+
   srand(time(NULL));
 
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER)) {
@@ -51,7 +48,8 @@ void runApp() {
   SDL_Renderer *prender =
       SDL_CreateRenderer(pwindow, -1, SDL_RENDERER_ACCELERATED);
   SDL_GameController *gamepad = NULL;
-  TTF_Font *font = TTF_OpenFont("../assets/fonts/kongtext/kongtext.ttf", 24);
+  TTF_Font *font =
+      TTF_OpenFont("../assets/fonts/kongtext/kongtext.ttf", fontSize);
 
   SDL_Texture *ptxtPipe =
       IMG_LoadTexture(prender, "../assets/sprites/pipe.png");
@@ -183,7 +181,10 @@ void runApp() {
           pipes, hitBoxPipeTop, hitBoxPipeBottom, hitBoxPipePoints, &pipeCount,
           &points, prender, ptxtPipe, &flappy, &intersection, gamepad, font,
           isFlappyAlive, scored);
-      renderScore(prender, font, 50, 30, &points);
+      char scoreText[32];
+      snprintf(scoreText, sizeof(scoreText), "%d", points);
+      renderScore(prender, font, scoreText,
+                  (WIDTH / 2) - GetTextWidth(font, scoreText) / 2, 30, &points);
     }
 
     // render
