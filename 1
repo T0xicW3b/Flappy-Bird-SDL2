@@ -41,10 +41,6 @@ file(GLOB SOURCES CONFIGURE_DEPENDS "src/*.c" "include/functions/*.c")
 
 add_executable(flappy ${SOURCES})
 
-target_include_directories(flappy PRIVATE
-  ${CMAKE_SOURCE_DIR}/include
-)
-
 target_link_libraries(flappy PRIVATE
   SDL2::SDL2
   SDL2::SDL2main
